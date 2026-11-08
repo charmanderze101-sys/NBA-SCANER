@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NBA Probability Scanner</title>
+
+<style>
+:root {
+  --bg:#07111f;
+  --panel:#0d1b2d;
+  --panel2:#10243a;
+  --line:#1d3854;
+  --text:#edf5ff;
+  --muted:#9db1c8;
+  --blue:#2692ff;
+  --green:#20d68a;
+  --yellow:#ffc247;
+  --red:#ff5868;
+}
+
+* {
+  box-sizing:border-box;
+}
+
+body {
+  margin:0;
+  background:radial-gradient(circle at 80% 0,#102b49 0,transparent 34%),var(--bg);
+  color:var(--text);
+  font:15px/1.45 Inter,system-ui,Arial;
+}
+
+header {
+  padding:22px 4vw;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.brand {
+  font-size:22px;
+  font-weight:850;
+  letter-spacing:.4px;
+}
+
+.brand span {
+  color:var(--blue);
+}
+
+.status {
+  font-size:12px;
+  color:var(--muted);
+}
+
+main {
+  max-width:1400px;
+  margin:auto;
+  padding:24px 3vw;
+  display:grid;
+  grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);
+  gap:18px;
+}
+
+.card {
+  background:linear-gradient(145deg,#102239,#091727);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 12px 35px #0004;
+}
+
+h2 {
+  font-size:18px;
+  margin:0 0 5px;
+}
+
+p.sub {
+  color:var(--muted);
+  font-size:13px;
+  margin:0 0 18px;
+}
+
+.form {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:13px;
+}
+
+.wide {
+  grid-column:1/-1;
+}
+
+label {
+  display:block;
+  color:#c7d8e9;
+  font-size:12px;
+  margin-bottom:6px;
+}
+
+input,select,textarea {
+  width:100%;
+  background:#071525;
+  color:var(--text);
+  border:1px solid #29435f;
+  border-radius:9px;
+  padding:11px;
+  font:inherit;
+  outline:none;
+}
+
+textarea {
+  min-height:100px;
+  resize:vertical;
+}
+
+.btn {
+  background:linear-gradient(90deg,#0877eb,#269cff);
+  border:0;
+  color:white;
+  font-weight:750;
+  border-radius:10px;
+  padding:12px 16px;
+  cursor:pointer;
+}
+
+.btn.secondary {
+  background:#18314c;
+  border:1px solid #315574;
+}
+
+.btn:disabled {
+  opacity:.5;
+  cursor:wait;
+}
+
+.result {
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.metric {
+  background:#071625;
+  border:1px solid var(--line);
+  border-radius:11px;
+  padding:13px;
+}
+
+.metric small {
+  color:var(--muted);
+  display:block;
+}
+
+.metric strong {
+  font-size:22px;
+  display:block;
+  margin-top:5px;
+}
+
+.big {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  background:#061421;
+  border:1px solid #1c4c62;
+  border-radius:12px;
+  padding:18px;
+  margin-top:15px;
+}
+
+.pct {
+  font-size:38px;
+  font-weight:900;
+  color:var(--green);
+}
+
+.note {
+  font-size:12px;
+  color:var(--muted);
+  margin-top:12px;
+}
+
+.list {
+  display:grid;
+  gap:9px;
+}
+
+.game {
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px;
+  border:1px solid var(--line);
+  background:#071625;
+  border-radius:10px;
+}
+
+.game b {
+  font-size:13px;
+}
+
+.tag {
+  font-size:11px;
+  color:var(--green);
+}
+
+footer {
+  max-width:1400px;
+  margin:0 auto;
+  padding:0 3vw 28px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+@media(max-width:850px) {
+  main {
+    grid-template-columns:1fr;
+  }
+
+  .result {
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+@media(max-width:480px) {
+  .form {
+    grid-template-columns:1fr;
+  }
+
+  .wide {
+    grid-column:auto;
+  }
+
+  .result {
+    grid-template-columns:1fr 1fr;
+  }
+
+  .big {
+    align-items:flex-start;
+    flex-direction:column;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="brand">🏀 NBA <span>PROBABILITY SCANNER</span></div>
+  <div class="status" id="status">Conectando ao placar ESPN…</div>
+</header>
+
+<main>
+
+<section class="card">
+  <h2>Análise de mercado</h2>
+  <p class="sub">
+    Informe o mercado e os resultados recentes do atleta.
+    O cálculo abaixo usa a frequência observada na amostra inserida.
+  </p>
+
+  <div class="form">
+
+    <div>
+      <label>Jogador</label>
+      <input id="player" placeholder="Ex.: Pascal Siakam">
+    </div>
+
+    <div>
+      <label>Adversário</label>
+      <input id="opponent" placeholder="Ex.: Denver Nuggets">
+    </div>
+
+    <div>
+      <label>Mercado</label>
+      <select id="market">
+        <option>Pontos</option>
+        <option>Rebotes</option>
+        <option>Assistências</option>
+        <option>Roubos de bola</option>
+        <option>Bloqueios</option>
+        <option>Combinação P+R+A</option>
+      </select>
+    </div>
+
+    <div>
+      <label>Direção</label>
+      <select id="side">
+        <option value="over">Mais de</option>
+        <option value="under">Menos de</option>
+      </select>
+    </div>
+
+    <div>
+      <label>Linha</label>
+      <input id="line" type="number" step=".5" value="7.5">
+    </div>
+
+    <div>
+      <label>Janela</label>
+      <select id="window">
+        <option>Últimos 5</option>
+        <option selected>Últimos 10</option>
+        <option>Últimos 15</option>
+        <option>Últimos 20</option>
+      </select>
+    </div>
+
+    <div class="wide">
+      <label>
+        Estatísticas jogo a jogo (mais recente primeiro, separadas por vírgula)
+      </label>
+      <textarea id="values" placeholder="Ex.: 9, 7, 11, 6, 8, 10, 5, 9, 8, 12"></textarea>
+    </div>
+
+    <div class="wide">
+      <button class="btn" id="analyze">
+        Calcular frequência observada
+      </button>
+    </div>
+
+  </div>
+
+  <div id="output" aria-live="polite"></div>
+
+  <p class="note">
+    Importante: esta versão não inventa projeções. A frequência é calculada
+    somente com os números fornecidos; não é uma probabilidade calibrada
+    do próximo jogo.
+  </p>
+</section>
+
+<aside class="card">
+  <h2>Jogos da NBA</h2>
+  <p class="sub">
+    Placar e calendário carregados automaticamente pela API pública
+    não oficial da ESPN.
+  </p>
+
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <input type="date" id="date">
+    <button class="btn secondary" id="refresh">Atualizar</button>
+  </div>
+
+  <div class="list" id="games">
+    <div class="status">Carregando jogos…</div>
+  </div>
+
+  <p class="note">
+    O feed de placares é de terceiros e pode sofrer alterações ou indisponibilidade.
+  </p>
+</aside>
+
+<section class="card wide">
+  <h2>RADAR NBA</h2>
+  <p class="sub">
+    Estrutura inicial do scanner automático. A varredura de mercados exige
+    uma fonte licenciada de logs individuais e escalações/lesões;
+    não exibimos picks sem esses dados verificados.
+  </p>
+
+  <div class="result">
+    <div class="metric">
+      <small>Jogos encontrados</small>
+      <strong id="gameCount">—</strong>
+    </div>
+
+    <div class="metric">
+      <small>Mercados escaneados</small>
+      <strong>0</strong>
+    </div>
+
+    <div class="metric">
+      <small>Oportunidades verificadas</small>
+      <strong>0</strong>
+    </div>
+  </div>
+
+  <p class="note">
+    Próxima integração necessária: histórico jogo a jogo por atleta,
+    minutos, status de lesão e escalações. Uma API de placares sozinha
+    não fornece esses dados.
+  </p>
+</section>
+
+</main>
+
+<footer>
+  NBA Probability Scanner · Protótipo local · Não é recomendação financeira
+  nem garantia de resultado. Confira escalações e fontes antes de tomar decisões.
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function localDate() {
+  let d = new Date(),
+      off = d.getTimezoneOffset();
+
+  return new Date(d.getTime() - off * 60000)
+    .toISOString()
+    .slice(0,10);
+}
+
+$('date').value = localDate();
+
+function fmtTime(s) {
+  try {
+    return new Date(s).toLocaleTimeString('pt-BR',{
+      hour:'2-digit',
+      minute:'2-digit'
+    });
+  } catch {
+    return '';
+  }
+}
+
+async function loadGames() {
+  const d = $('date').value.replaceAll('-','');
+
+  $('status').textContent = 'Atualizando placar…';
+  $('games').innerHTML = '<div class="status">Consultando ESPN…</div>';
+
+  try {
+    const r = await fetch(
+      'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=' + d
+    );
+
+    if (!r.ok) throw Error('HTTP ' + r.status);
+
+    const j = await r.json(),
+          events = j.events || [];
+
+    $('gameCount').textContent = events.length;
+
+    $('games').innerHTML = events.length
+      ? events.map(e => {
+          const c = e.competitions?.[0],
+                teams = c?.competitors || [],
+                a = teams.find(t => t.homeAway === 'away'),
+                h = teams.find(t => t.homeAway === 'home'),
+                st = e.status?.type?.shortDetail || 'Agendado';
+
+          return `
+            <div class="game">
+              <div>
+                <b>
+                  ${a?.team?.abbreviation || '—'}
+                  ${a?.score ?? ''}
+                  ×
+                  ${h?.score ?? ''}
+                  ${h?.team?.abbreviation || '—'}
+                </b>
+                <div class="status">${e.name || ''}</div>
+              </div>
+
+              <div style="text-align:right">
+                <span class="tag">${st}</span>
+                <div class="status">${fmtTime(e.date)}</div>
+              </div>
+            </div>
+          `;
+        }).join('')
+      : '<div class="status">Nenhum jogo encontrado nesta data.</div>';
+
+    $('status').textContent =
+      'Placar atualizado · ' +
+      new Date().toLocaleTimeString('pt-BR');
+
+  } catch(err) {
+    $('status').textContent = 'Não foi possível atualizar o placar';
+
+    $('games').innerHTML = `
+      <div class="status">
+        Falha ao consultar ESPN. Tente novamente mais tarde.
+        ${err.message}
+      </div>
+    `;
+  }
+}
+
+$('refresh').onclick = loadGames;
+$('date').onchange = loadGames;
+
+loadGames();
+setInterval(loadGames,120000);
+
+$('analyze').onclick = () => {
+  const vals = $('values').value
+    .split(/[,\s;]+/)
+    .map(Number)
+    .filter(Number.isFinite);
+
+  const n = Number($('window').value.match(/\d+/)[0]),
+        sample = vals.slice(0,n),
+        line = Number($('line').value),
+        side = $('side').value;
+
+  if (!sample.length || !Number.isFinite(line)) {
+    $('output').innerHTML =
+      '<p class="note">Insira a linha e ao menos um resultado válido.</p>';
+    return;
+  }
+
+  const hits = sample.filter(v =>
+    side === 'over' ? v > line : v < line
+  ).length;
+
+  const rate = hits / sample.length * 100;
+
+  const avg = sample.reduce((a,b) => a+b,0) / sample.length;
+
+  $('output').innerHTML = `
+    <div class="big">
+      <div>
+        <small>
+          ${$('player').value || 'Jogador'} ·
+          ${$('market').value} ·
+          ${side === 'over' ? 'Mais' : 'Menos'} de ${line}
+        </small>
+
+        <div class="pct">
+          ${rate.toFixed(1).replace('.',',')}%
+        </div>
+
+        <div class="status">
+          Frequência observada na amostra
+        </div>
+      </div>
+
+      <div>
+        <b>${hits}/${sample.length} jogos</b>
+        <div class="status">
+          Média: ${avg.toFixed(1).replace('.',',')}
+        </div>
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="metric">
+        <small>Acertos</small>
+        <strong>${hits}</strong>
+      </div>
+
+      <div class="metric">
+        <small>Amostra usada</small>
+        <strong>${sample.length}</strong>
+      </div>
+
+      <div class="metric">
+        <small>Média simples</small>
+        <strong>${avg.toFixed(1).replace('.',',')}</strong>
+      </div>
+    </div>
+  `;
+};
+</script>
+
+</body>
+</html>
